@@ -1,8 +1,6 @@
 use std::error;
 
-use ratatui::widgets::ListState;
-
-use crate::connection::{get_cities, get_temperature, CityInfo};
+use crate::connection::{get_cities, get_temperature, get_forecast, CityInfo};
 
 /// Application result type.
 pub type AppResult<T> = Result<T, Box<dyn error::Error>>;
@@ -33,14 +31,15 @@ impl App {
         app.cities = get_cities().await.unwrap();
         let current_city = get_temperature(app.cities[app.index as usize].clone()).await.unwrap();
         app.current_city = Some(current_city);
-        // let curren_city_forecast = get_forecast(app.cities[app.index as usize].clone()).await.unwrap();
-        // app.current_city_forecast = Some(curren_city_forecast);
+        let curren_city_forecast = get_forecast(app.cities[app.index as usize].clone()).await.unwrap();
+        app.current_city_forecast = Some(curren_city_forecast);
         // Nu stiu ce are imi vine sa ma omor
         app
     }
     pub async fn get_temp(&mut self) {
-        self.current_city = Some(get_temperature(self.cities.get(self.index as usize).unwrap().to_string()).await.unwrap());
-        // self.current_city_forecast = Some(get_forecast(self.cities.get(self.index as usize).unwrap().to_string()).await.unwrap());
+        let current_city: String = self.cities.get(self.index as usize).unwrap().to_string();
+        self.current_city = Some(get_temperature(current_city.clone()).await.unwrap());
+        self.current_city_forecast = Some(get_forecast(current_city.clone()).await.unwrap());
     }
     pub async fn down(&mut self) {
         self.index = self.index + 1;

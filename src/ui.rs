@@ -1,8 +1,7 @@
 use std::vec;
 
-use ratatui::{layout::{self, Constraint, Direction, Layout, Size}, style::{Color, Modifier, Style, Stylize}, symbols, text::Text, widgets::{Axis, Block, Borders, Chart, Dataset, GraphType, List, ListItem, ListState, Paragraph}, Frame};
-use tui_scrollview::ScrollView;
-use crate::{app::App, connection::get_temperature};
+use ratatui::{layout::{self, Constraint, Direction, Layout, Size}, style::{Color, Modifier, Style, Stylize}, symbols, text::{Text}, widgets::{Axis, Block, Borders, Chart, Dataset, GraphType::Line, List, ListItem, ListState, Paragraph}, Frame};
+use crate::{app::App, connection::{get_temperature, get_forecast}};
 
 /// Renders the user interface widgets.
 pub fn render(app: &mut App, frame: &mut Frame) {
@@ -54,45 +53,53 @@ pub fn render(app: &mut App, frame: &mut Frame) {
 
     // TODO: Create the weather info component
     // TODO: Render the weather info component
+    let mut tuples_list: Vec<(f64, f64)> = vec![];
+    let mut i:f64 = 0.0;
+    for forecast in app.current_city_forecast.as_ref().unwrap() {
+        tuples_list.push((i, forecast.conditions.temp.clone() as f64));
+        i = i + 1.0;
+    }
     let paragraph_widget = Paragraph::new(std::format!("Temperatura: {}",app.current_city.as_ref().unwrap().conditions.temp.to_string()))
     .block(Block::default().style(Style::new().bg(Color::Blue)).borders(Borders::ALL));
     frame.render_widget(paragraph_widget, right1);
 
-    // Aici trebuia sa fie un chart pt forecast, imaginati-va voi ca e aici
-//     let mut temperatures:Vec<f32> = vec![];
+    // Aici trebuia sa fie un chart pt forecast, imaginati-va voi ca e aici. Edit: A MERS
 
-//     for forecast in app.current_city_forecast.as_ref().unwrap() {
-//         temperatures.push(forecast.conditions.temp.clone());
-//     }
+    let x_max = tuples_list.iter().map(|&(hour, _)| hour).fold(f64::MIN, f64::max);
+    let y_max = tuples_list.iter().map(|&(_, temp)| temp).fold(f64::MIN, f64::max);
 
-//     let mut hours: Vec<String> = app.current_city_forecast.as_ref().unwrap().into_iter().map(|x| x.current_time.as_ref().unwrap().clone()).collect();
+    let x_bounds = [0.0, x_max + 1.0]; // Add a buffer to the max hour
+    let y_bounds = [0.0, y_max + 5.0]; // Add a buffer to the max temperature
 
-//     let datasets = vec![
-//     Dataset::default()
-//         .name("data1")
-//         .marker(symbols::Marker::Dot)
-//         .graph_type(GraphType::Scatter)
-//         .style(Style::default().cyan())
-//         .data(&[(0.0, 5.0), (1.0, 6.0), (1.5, 6.434)]),
-// ];
+    let dataset = vec![
+        Dataset::default()
+            .style(Style::default().fg(Color::Cyan))
+            .graph_type(Line)
+            .data(&tuples_list)
+    ];
 
-//     let x_axis = Axis::default()
-//         .title("X Axis".red())
-//         .style(Style::default().white())
-//         .bounds([0.0, 10.0])
-//         .labels(vec!["0.0".into(), "5.0".into(), "10.0".into()]);
+    let x_axis = Axis::default()
+        .title("Ora".blue())
+        .style(Style::default().white())
+        .bounds(x_bounds);
 
+    let y_axis = Axis::default()
+        .title("Temperatura".blue())
+        .style(Style::default().white())
+        .labels(vec!["0".into(), "5".into(), "10".into(), "15".into(), "20".into(), "25".into()])
+        .bounds(y_bounds);
 
-//     let y_axis = Axis::default()
-//         .title("Y Axis".red())
-//         .style(Style::default().white())
-//         .bounds([0.0, 10.0])
-//         .labels(vec!["0.0".into(), "5.0".into(), "10.0".into()]);
+    let chart_widget = Chart::new(dataset)
+        .block(
+            Block::default()
+                .title("Chart".cyan().bold())
+                .borders(Borders::ALL)
+                .style(Style::new().bg(Color::Blue))
+        )
+        .x_axis(x_axis)
+        .y_axis(y_axis);
 
-//     let chart_widget = Chart::new(datasets)
-//         .block(Block::default().title("Chart"))
-//         .x_axis(x_axis)
-//         .y_axis(y_axis);
+    frame.render_widget(chart_widget, right2);
     
 
-}
+}   

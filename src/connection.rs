@@ -33,7 +33,7 @@ pub struct Weather {
 #[derive(Debug, Serialize, Deserialize)]
 pub struct CityInfo {
     // TODO: define elements in the structure
-    pub city: String,
+    pub city: Option<String>,
     pub time: Option<String>,
     pub weather: Weather,
     pub conditions: Conditions,
@@ -50,7 +50,7 @@ pub struct Cities {
 #[derive(Debug, Serialize, Deserialize)]
 pub struct Forecast {
     city: String,
-    forecast: Vec<CityInfo>
+    forecast: Vec<CityInfo>,
 }
 
 /// Method that is handling the request to the openweather api,
@@ -90,19 +90,19 @@ pub async fn get_cities() -> Result<Vec<String>, reqwest::Error>{
     }
 }
 
-// pub async fn get_forecast(city: String) -> Result<Vec<CityInfo>, reqwest::Error>{
-//     let client = reqwest::Client::new();
-//     let response = client.post("http://34.116.205.113:3000/cities/forecast")
-//     .header("Content-Type", "application/json")
-//     .body(std::format!("{{\"city\": \"{}\"}}", city))
-//     .send().await;
+pub async fn get_forecast(city: String) -> Result<Vec<CityInfo>, reqwest::Error>{
+    let client = reqwest::Client::new();
+    let response = client.post("http://34.116.205.113:3000/cities/forecast")
+    .header("Content-Type", "application/json")
+    .body(std::format!("{{\"city\": \"{}\"}}", city))
+    .send().await;
 
-//     match response {
-//         Ok(response) => {
-//             Ok(response.json::<Forecast>().await.unwrap().forecast)
-//         },
-//         Err(error) => {
-//             Err(error)
-//         }
-//     }
-// }
+    match response {
+        Ok(response) => {
+            Ok(response.json::<Forecast>().await.unwrap().forecast)
+        },
+        Err(error) => {
+            Err(error)
+        }
+    }
+}
