@@ -57,6 +57,9 @@ impl EventHandler {
                   }
                   Some(Ok(evt)) = crossterm_event => {
                     match evt {
+                        CrosstermEvent::Key(key) => {
+                            _sender.send(Event::Key(key));
+                        }
                       _ => {}
                     }
                   }

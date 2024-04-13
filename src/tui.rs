@@ -52,6 +52,7 @@ impl<B: Backend> Tui<B> {
     pub fn draw(&mut self, app: &mut App) {
         // [`Draw`]: ratatui::Terminal::draw
         // [`rendering`]: crate::ui:render
+        self.terminal.draw(|frame|{ui::render(app, frame)});
     }
 
     /// Resets the terminal interface.
